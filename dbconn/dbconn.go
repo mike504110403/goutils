@@ -12,13 +12,17 @@ import (
 
 var (
 	// 連線池
-	dbList = make(map[DBName]DBConfig)
+	dbList                        = make(map[DBName]DBConfig)
+	connMaxIdleTime time.Duration = 10 * time.Minute
+	connMaxLifetime time.Duration = 1 * time.Hour
+	maxOpenConns    int           = 100
+	maxIdleConns    int           = 10
 	// 預設連線設定
-	defaultConfig = DefaultConfig{
-		ConnMaxIdleTime: 10 * time.Minute,
-		ConnMaxLifetime: 1 * time.Hour,
-		MaxOpenConns:    100,
-		MaxIdleConns:    10,
+	defaultConfig = Config{
+		ConnMaxIdleTime: &connMaxIdleTime,
+		ConnMaxLifetime: &connMaxLifetime,
+		MaxOpenConns:    &maxOpenConns,
+		MaxIdleConns:    &maxIdleConns,
 	}
 )
 
@@ -36,7 +40,6 @@ func New(cfgList map[DBName]DBConfig) {
 					db = _db
 					setDBConfig(db, dbCfg.ConnConfig)
 				}
-
 			}
 		})
 		dbCfg.db = db
@@ -45,29 +48,50 @@ func New(cfgList map[DBName]DBConfig) {
 }
 
 // 設定連線池參數
-func setDBConfig(db *sql.DB, config Config) {
-	if config.ConnMaxIdleTime != nil {
-		db.SetConnMaxIdleTime(*config.ConnMaxIdleTime)
-	} else {
-		db.SetConnMaxIdleTime(defaultConfig.ConnMaxIdleTime)
+func setDBConfig(db *sql.DB, config *Config) {
+	if config == nil {
+		config = &defaultConfig
 	}
 
-	if config.ConnMaxLifetime != nil {
-		db.SetConnMaxLifetime(*config.ConnMaxLifetime)
-	} else {
-		db.SetConnMaxLifetime(defaultConfig.ConnMaxLifetime)
-	}
+	setConnMaxIdleTime(db, config.ConnMaxIdleTime, defaultConfig.ConnMaxIdleTime)
+	setConnMaxLifetime(db, config.ConnMaxLifetime, defaultConfig.ConnMaxLifetime)
+	setMaxOpenConns(db, config.MaxOpenConns, defaultConfig.MaxOpenConns)
+	setMaxIdleConns(db, config.MaxIdleConns, defaultConfig.MaxIdleConns)
+}
 
-	if config.MaxOpenConns != nil {
-		db.SetMaxOpenConns(*config.MaxOpenConns)
+// 設定連線最大閒置時間
+func setConnMaxIdleTime(db *sql.DB, value, defaultValue *time.Duration) {
+	if value != nil {
+		db.SetConnMaxIdleTime(*value)
 	} else {
-		db.SetMaxOpenConns(defaultConfig.MaxOpenConns)
+		db.SetConnMaxIdleTime(*defaultValue)
 	}
+}
 
-	if config.MaxIdleConns != nil {
-		db.SetMaxIdleConns(*config.MaxIdleConns)
+// 設定連線最大存活時間
+func setConnMaxLifetime(db *sql.DB, value, defaultValue *time.Duration) {
+	if value != nil {
+		db.SetConnMaxLifetime(*value)
 	} else {
-		db.SetMaxIdleConns(defaultConfig.MaxIdleConns)
+		db.SetConnMaxLifetime(*defaultValue)
+	}
+}
+
+// 設定最大開啟連線數
+func setMaxOpenConns(db *sql.DB, value, defaultValue *int) {
+	if value != nil {
+		db.SetMaxOpenConns(*value)
+	} else {
+		db.SetMaxOpenConns(*defaultValue)
+	}
+}
+
+// 設定最大閒置連線數
+func setMaxIdleConns(db *sql.DB, value, defaultValue *int) {
+	if value != nil {
+		db.SetMaxIdleConns(*value)
+	} else {
+		db.SetMaxIdleConns(*defaultValue)
 	}
 }
 
