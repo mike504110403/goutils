@@ -1,4 +1,4 @@
-module github.com/mike504110403/dbconn
+module github.com/mike504110403/goutils/dbconn
 
 go 1.22.3
 
