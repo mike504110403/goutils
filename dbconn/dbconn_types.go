@@ -24,19 +24,11 @@ type Config struct {
 	MaxIdleConns    *int
 }
 
-// 預設連線設定
-type DefaultConfig struct {
-	ConnMaxIdleTime time.Duration
-	ConnMaxLifetime time.Duration
-	MaxOpenConns    int
-	MaxIdleConns    int
-}
-
 // 資料庫連線設定
 type DBConfig struct {
 	db         *sql.DB
 	DBDriver   DBDriver
 	DSNSource  any
-	ConnConfig Config
+	ConnConfig *Config
 	Once       sync.Once
 }

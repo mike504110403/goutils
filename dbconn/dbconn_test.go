@@ -20,6 +20,12 @@ func TestNew(t *testing.T) {
 		DBName("test_db"): {
 			DBDriver:  DBDriverMySQL,
 			DSNSource: testDsn,
+			ConnConfig: &Config{
+				ConnMaxIdleTime: defaultConfig.ConnMaxIdleTime,
+				ConnMaxLifetime: defaultConfig.ConnMaxLifetime,
+				MaxOpenConns:    defaultConfig.MaxOpenConns,
+				MaxIdleConns:    defaultConfig.MaxIdleConns,
+			},
 		},
 	}
 
